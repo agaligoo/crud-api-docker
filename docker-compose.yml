@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Services
+services:
+
+  # Mariadb Service
+  mariadb:
+    image: mariadb:10.5
+    container_name: mariadb
+    restart: always
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - 6033:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}   
+    # network_mode: "host"           
+
+
+  # PhpMyAdmin Service
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    # image: phpmyadmin/phpmyadmin:fpm-alpine
+    container_name: phpmyadmin
+    restart: always
+    volumes:
+      - phpmyadmin_data:/var/www/html/
+      - /sessions
+    ports:
+      - 8084:80
+    environment:
+      PMA_HOST: mariadb
+      PMA_ARBITRARY: 1
+    depends_on:
+      - mariadb
+
+  # api Service
+  api:
+    build: .
+    container_name: api
+    restart: always
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      - mariadb
+
+  
+volumes:
+  mariadb_data:
+  phpmyadmin_data:
+
